@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                             xmlns:app="http://schemas.android.com/apk/res-auto"
+                                             xmlns:tools="http://schemas.android.com/tools"
+                                             android:layout_width="match_parent"
+                                             android:layout_height="200dp"
+                                             android:background="#fafafa"
+                                             android:orientation="vertical">
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="8dp"
+        app:cardBackgroundColor="#ffffff"
+        app:cardCornerRadius="2dp"
+        app:cardElevation="10dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="32dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="16dp">
+
+            <android.support.constraint.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                >
+
+                <TextView
+                    android:id="@+id/trainNumber"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="8dp"
+                    android:text="TextView"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="@+id/startStation"
+                    app:layout_constraintStart_toStartOf="@+id/startStation"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="D8482次"/>
+
+                <ImageView
+                    android:id="@+id/imageView2"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:src="@drawable/ic_train"/>
+
+                <TextView
+                    android:id="@+id/startStation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="40dp"
+                    android:layout_marginTop="2dp"
+                    android:text="TextView"
+                    android:textColor="#000000"
+                    android:textSize="24sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/trainNumber"
+                    tools:text="玉林站"/>
+
+                <TextView
+                    android:id="@+id/startTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TextView"
+                    android:textSize="12sp"
+                    app:layout_constraintEnd_toEndOf="@+id/startStation"
+                    app:layout_constraintStart_toStartOf="@+id/startStation"
+                    app:layout_constraintTop_toBottomOf="@+id/startStation"
+                    tools:text="2018/1/23/21:30"/>
+
+                <TextView
+                    android:id="@+id/endStation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="40dp"
+                    android:layout_marginStart="80dp"
+                    android:text="TextView"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="22sp"
+                    app:layout_constraintBaseline_toBaselineOf="@id/startStation"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/startStation"
+                    tools:text="桂林"/>
+
+                <TextView
+                    android:id="@+id/arriveTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginEnd="8dp"
+
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="2dp"
+
+                    android:text="TextView"
+                    android:textSize="12sp"
+                    app:layout_constraintBaseline_toBaselineOf="@id/startTime"
+                    app:layout_constraintEnd_toEndOf="@+id/endStation"
+                    app:layout_constraintStart_toStartOf="@+id/endStation"
+                    app:layout_constraintTop_toBottomOf="@+id/endStation"
+                    tools:text="21:00"/>
+
+                <TextView
+                    android:id="@+id/bus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="16dp"
+                    android:text="车厢"
+                    android:textSize="12sp"
+
+                    app:layout_constraintEnd_toEndOf="@+id/startTime"
+                    app:layout_constraintStart_toStartOf="@id/startTime"
+                    app:layout_constraintTop_toBottomOf="@+id/startTime"/>
+
+                <TextView
+                    android:id="@+id/seat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="80dp"
+                    android:layout_marginTop="16dp"
+                    android:text="座位"
+                    android:textSize="12sp"
+                    app:layout_constraintEnd_toEndOf="@+id/startTime"
+                    app:layout_constraintStart_toEndOf="@+id/bus"
+                    app:layout_constraintTop_toBottomOf="@+id/startTime"/>
+                <TextView
+                    android:id="@+id/busNumber"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="2dp"
+                    android:text="TextView"
+                    android:textSize="16sp"
+                    tools:text="5车"
+                    android:textColor="#000000"
+                    app:layout_constraintEnd_toEndOf="@+id/bus"
+                    app:layout_constraintStart_toStartOf="@+id/bus"
+                    app:layout_constraintTop_toBottomOf="@+id/bus"/>
+
+                <TextView
+                    android:id="@+id/seatNumber"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#000000"
+                    android:layout_marginTop="16dp"
+                    android:text="TextView"
+                    app:layout_constraintEnd_toEndOf="@+id/seat"
+                    app:layout_constraintStart_toStartOf="@+id/seat"
+                    app:layout_constraintBaseline_toBaselineOf="@id/busNumber"
+                    tools:text="3D号"
+                    app:layout_constraintTop_toBottomOf="@+id/seat"/>
+                <ImageView
+                    android:id="@+id/outImg"
+                    android:layout_width="120dp"
+                    android:layout_height="60dp"
+                    android:scaleType="fitXY"
+                    android:visibility="gone"
+                    android:src="@drawable/out"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+            </android.support.constraint.ConstraintLayout>
+        </RelativeLayout>
+
+    </android.support.v7.widget.CardView>
+
+</android.support.constraint.ConstraintLayout>
