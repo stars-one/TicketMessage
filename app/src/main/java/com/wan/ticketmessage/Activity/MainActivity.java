@@ -1,12 +1,18 @@
 package com.wan.ticketmessage.Activity;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputEditText;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,6 +24,7 @@ import com.wan.ticketmessage.BaseActivity;
 import com.wan.ticketmessage.Bean.Message;
 import com.wan.ticketmessage.R;
 import com.wan.ticketmessage.Util.MessageExtract;
+import com.wan.ticketmessage.Util.PermissionUtils;
 
 import org.litepal.LitePal;
 
@@ -31,11 +38,14 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private FloatingActionButton mFloatbutton;
     private List<com.wan.ticketmessage.Bean.Message> messages;
     private RVAdapter<Message> adapter;
+    final String SMS_URI_ALL = "content://sms/"; // 所有短信
+    private SwipeRefreshLayout refreshLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        PermissionUtils.checkAndRequestPermission(this, Manifest.permission.READ_SMS,1);
 
     }
 
@@ -67,8 +77,19 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
     }
 
+    @SuppressLint("ResourceAsColor")
     @Override
     public void initView() {
+        android.support.v7.widget.Toolbar toolbar = findView(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        refreshLayout = findView(R.id.refreshlayout);
+        refreshLayout.setColorSchemeColors(R.color.colorPrimary);
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refreshData();
+            }
+        });
         mRv = findView(R.id.rv);
         mFloatbutton = findView(R.id.floatbutton);
         mFloatbutton.setOnClickListener(this);
@@ -107,6 +128,54 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
         mRv.setAdapter(MainActivity.this, adapter,1, RecyclerView.VERTICAL);
     }
+    /**
+     * 刷新数据
+     */
+    private void refreshData() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int oldSize = LitePal.findAll(Message.class).size();
+                List<String> list = getSMSBody();
+                if (list.size() == 0) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "未找到可添加的短信", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                } else {
+                    extraData(list);
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                int newSize = LitePal.findAll(Message.class).size();
+                if (newSize > oldSize) {
+                   runOnUiThread(new Runnable() {
+                       @Override
+                       public void run() {
+                           Toast.makeText(MainActivity.this, "已添加", Toast.LENGTH_SHORT).show();
+                       }
+                   });
+                } else {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "未找到可添加的短信", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+                refreshLayout.setRefreshing(false);
+
+            }
+        }).start();
+
+
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -119,6 +188,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         switch (item.getItemId()) {
             case R.id.item_setting:
                 Toast.makeText(this, "还在开发中哦！！", Toast.LENGTH_SHORT).show();
+
                 break;
             case R.id.item_description:
                 new AlertDialog.Builder(this).setPositiveButton("确定", new DialogInterface.OnClickListener() {
@@ -164,6 +234,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                         getInputData(textInputEditText);
                     }
                 }).setTitle("输入内容").show();
+
                 break;
                 default:break;
         }
@@ -185,4 +256,76 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
 
     }
+
+    /**
+     * 提取全部短信内容
+     * @param list
+     */
+    private void extraData(List<String> list) {
+
+
+        for (int i = 0; i < list.size(); i++) {
+            String data = list.get(i);
+            if (!TextUtils.isEmpty(data)) {
+                if (data.startsWith("【智行】")) {
+                    Message message = MessageExtract.getMessage(data);
+                    //不相同才存进数据库
+                    if (!isSame(message)) {
+                        Log.d("---提取短信---", "extraData: 存入数据");
+                        message.save();
+                        adapter.setList_bean(LitePal.findAll(Message.class));
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 判断是否相同
+     * @param message 信息
+     * @return 是否相同
+     */
+    private boolean isSame(Message message) {
+        boolean flag =false;
+        List<Message> list = LitePal.findAll(Message.class);
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).equals(message)) {
+                flag = true;//存在一个相同，即可返回true,停止循环
+                break;
+            }
+        }
+        return flag;
+    }
+
+
+    /**
+     * 获取全部短信内容
+     * @return
+     */
+    private List<String> getSMSBody() {
+        List<String> bodyList = new ArrayList<>();
+        if (PermissionUtils.checkPermission(this, Manifest.permission.READ_SMS)) {
+            Uri uri = Uri.parse(SMS_URI_ALL);
+            String[] projection = new String[] { "_id", "address", "person",
+                    "body", "date", "type", };
+            Cursor cur = getContentResolver().query(uri, projection, null,
+                    null, "date desc");
+            int index_Body = cur.getColumnIndex("body");
+            //Cursor下标是从-1开始的，所以要移动到first（下标为0）
+            if (cur.moveToFirst()) {
+                do {
+                    String strbody = cur.getString(index_Body);
+                    bodyList.add(strbody);
+                }while (cur.moveToNext());
+            }
+
+            return bodyList;
+        } else {
+            Toast.makeText(this, "请允许短信权限", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+
+    }
+
+
 }

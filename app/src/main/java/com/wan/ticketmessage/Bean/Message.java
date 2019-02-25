@@ -5,6 +5,7 @@ import android.util.Log;
 import org.litepal.crud.LitePalSupport;
 
 import java.util.Calendar;
+import java.util.Objects;
 
 /**
  * Created by xen on 2019/1/30 0030.
@@ -182,5 +183,28 @@ public class Message extends LitePalSupport {
             return true;
         }
 
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            Log.d("---equal----", "equals: 相等");
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Message message = (Message) o;
+        return Objects.equals(trainNumber, message.trainNumber) &&
+                Objects.equals(startStation, message.startStation) &&
+                Objects.equals(endStation, message.endStation) &&
+                Objects.equals(startTime, message.startTime) &&
+                Objects.equals(busNumber, message.busNumber) &&
+                Objects.equals(seatNumber, message.seatNumber) &&
+                Objects.equals(ticketNumber, message.ticketNumber);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(trainNumber, startStation, endStation, startTime, arriveTime, busNumber, seatNumber, name, isOutDate, ticketNumber);
     }
 }
