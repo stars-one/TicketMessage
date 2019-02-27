@@ -76,7 +76,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     //更新日期，判断是否过期
     private void updateDate() {
         messages = LitePal.findAll(Message.class);
+        Log.d("---数据库删除是否成功---", "updateDate: "+messages.size());
         for (int i = 0; i < messages.size(); i++) {
+
             messages.get(i).setOutDate();
             messages.get(i).save();
         }
@@ -140,18 +142,19 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                             @Override
                             public void onSelect(int position, String text) {
                                 messages.remove(bean);
-                                adapter.notifyItemRemoved(myposition);
-                                showSnackBar(bean,myposition);
+
+                                adapter.notifyItemRemoved(myposition);//移出item
+                                showSnackBar(bean,myposition);//展示SnackBar,允许撤销操作
                             }
                         })
                         .atView(v.findViewById(R.id.seatNumber))  // 如果是要依附某个View，必须设置
                         .hasShadowBg(false)
                         .show();
 
-
             }
         };
         mRv.setItemAnimator(new SlideInLeftAnimator());
+        mRv.getItemAnimator().setRemoveDuration(600);
         mRv.setAdapter(MainActivity.this, adapter,1, RecyclerView.VERTICAL);
     }
 
@@ -247,7 +250,18 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     }
 
     private void showSnackBar(final Message message, final int position) {
-        Snackbar.make(refreshLayout,"已成功删除数据",Snackbar.LENGTH_SHORT).setAction("撤销删除", new View.OnClickListener() {
+        Snackbar.make(refreshLayout,"已成功删除数据",Snackbar.LENGTH_SHORT).addCallback(new Snackbar.Callback(){
+            @Override
+            public void onDismissed(Snackbar transientBottomBar, int event) {
+                if (event == DISMISS_EVENT_SWIPE || event == DISMISS_EVENT_TIMEOUT || event ==DISMISS_EVENT_CONSECUTIVE) {
+//                    LitePal.delete(Message.class, position);//
+                    message.delete();
+                    LitePal.delete(Message.class,1);
+                    Log.d("----位置---", "onDismissed: position"+position);
+                    Log.d("---删除数据---", "onDismissed: size="+LitePal.findAll(Message.class).size());
+                }
+            }
+        }).setAction("撤销删除", new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 messages.add(position, message);
