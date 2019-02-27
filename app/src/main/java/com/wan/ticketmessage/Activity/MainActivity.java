@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
@@ -20,6 +21,8 @@ import android.widget.Toast;
 
 import com.cy.cyrvadapter.adapter.RVAdapter;
 import com.cy.cyrvadapter.recyclerview.GridRecyclerView;
+import com.lxj.xpopup.XPopup;
+import com.lxj.xpopup.interfaces.OnSelectListener;
 import com.wan.ticketmessage.BaseActivity;
 import com.wan.ticketmessage.Bean.Message;
 import com.wan.ticketmessage.R;
@@ -30,6 +33,8 @@ import org.litepal.LitePal;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
 
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
@@ -124,10 +129,32 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             public void onItemClick(int position, Message bean) {
 
             }
-        };
 
+            @Override
+            public void onItemLongClick(int position, final Message bean) {
+                View v = mRv.getChildAt(position);
+                final int myposition = position;//注意这个position
+                XPopup.get(v.getContext()).asAttachList(new String[]{"删除"},
+                        null,
+                        new OnSelectListener() {
+                            @Override
+                            public void onSelect(int position, String text) {
+                                messages.remove(bean);
+                                adapter.notifyItemRemoved(myposition);
+                                showSnackBar(bean,myposition);
+                            }
+                        })
+                        .atView(v.findViewById(R.id.seatNumber))  // 如果是要依附某个View，必须设置
+                        .hasShadowBg(false)
+                        .show();
+
+
+            }
+        };
+        mRv.setItemAnimator(new SlideInLeftAnimator());
         mRv.setAdapter(MainActivity.this, adapter,1, RecyclerView.VERTICAL);
     }
+
     /**
      * 刷新数据
      */
@@ -159,6 +186,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                        @Override
                        public void run() {
                            Toast.makeText(MainActivity.this, "已添加", Toast.LENGTH_SHORT).show();
+                           refreshLayout.setRefreshing(false);
                        }
                    });
                 } else {
@@ -166,10 +194,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                         @Override
                         public void run() {
                             Toast.makeText(MainActivity.this, "未找到可添加的短信", Toast.LENGTH_SHORT).show();
+                            refreshLayout.setRefreshing(false);
                         }
                     });
                 }
-                refreshLayout.setRefreshing(false);
+
 
             }
         }).start();
@@ -186,8 +215,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.item_setting:
-                Toast.makeText(this, "还在开发中哦！！", Toast.LENGTH_SHORT).show();
+            case R.id.item_delete:
+//                showSnackBar();
 
                 break;
             case R.id.item_description:
@@ -196,7 +225,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                     }
-                }).setTitle("使用说明").setMessage("复制智行官方发来的购票成功短信，点击添加按钮，粘贴，即可").show();
+                }).setTitle("使用说明").setMessage("复制智行官方发来的购票成功短信，点击添加按钮，粘贴，即可\n增加下拉刷新功能，读取全部短信，提取智行购票成功短信").show();
 
 
 
@@ -217,6 +246,33 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         return true;
     }
 
+    private void showSnackBar(final Message message, final int position) {
+        Snackbar.make(refreshLayout,"已成功删除数据",Snackbar.LENGTH_SHORT).setAction("撤销删除", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                messages.add(position, message);
+                adapter.notifyItemInserted(position);
+            }
+        }).show();
+    }
+
+    /**
+     * 删除全部过期车票信息
+     * @return
+     */
+    private List<Message> deleteALLData() {
+        List<Message> temp = new ArrayList<>();
+        List<Message> mlist = LitePal.findAll(Message.class);
+        for (int i = 0; i <mlist.size() ; i++) {
+            Message message = mlist.get(i);
+            //过期删除
+            if (message.isOutDate()) {
+                temp.add(message);
+                LitePal.delete(Message.class,i);
+            }
+        }
+        return temp;
+    }
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -247,12 +303,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 Message message = MessageExtract.getMessage(data);
                 message.save();
                 adapter.setList_bean(LitePal.findAll(Message.class));
-                Toast.makeText(MainActivity.this, "添加成功！！", Toast.LENGTH_SHORT).show();
+                showToast("添加成功！");
             } else {
-                Toast.makeText(this, "内容错误!", Toast.LENGTH_SHORT).show();
+                showToast("内容错误!");
             }
         }else {
-            Toast.makeText(this, "内容不能为空！！", Toast.LENGTH_SHORT).show();
+            showToast("内容不能为空!!");
         }
 
     }
@@ -273,7 +329,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     if (!isSame(message)) {
                         Log.d("---提取短信---", "extraData: 存入数据");
                         message.save();
-                        adapter.setList_bean(LitePal.findAll(Message.class));
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                adapter.setList_bean(LitePal.findAll(Message.class));
+                            }
+                        });
                     }
                 }
             }
@@ -321,7 +382,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
             return bodyList;
         } else {
-            Toast.makeText(this, "请允许短信权限", Toast.LENGTH_SHORT).show();
+            showToast("请允许短信权限");
             return null;
         }
 
