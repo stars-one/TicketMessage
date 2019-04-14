@@ -1,4 +1,4 @@
-package com.wan.ticketmessage.Activity;
+package com.wan.ticketmessage.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -50,7 +50,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        PermissionUtils.checkAndRequestPermission(this, Manifest.permission.READ_SMS,1);
+        PermissionUtils.checkAndRequestPermission(this, Manifest.permission.READ_SMS, 1);
 
     }
 
@@ -59,24 +59,25 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         if (LitePal.isExist(Message.class)) {
             updateDate();
         } else {
-            LitePal.getDatabase();
+            LitePal.getDatabase();//初始化
             messages = new ArrayList<>();
         }
 
-       /* Message message = MessageExtract.getMessage("【智行】02月23日，玉林（11:40）-桂林，D8482抢票成功，取票号EE86285206，万兴兴 二等座05车厢08D号。");
+        /*Message message = MessageExtract.getMessage("【智行】02月23日，玉林（11:40）-桂林，D8482抢票成功，取票号EE86285206，万兴兴 二等座05车厢08D号。");
         Message message1 = MessageExtract.getMessage("【智行】07月23日，玉林（11:40）-桂林，D8482抢票成功，取票号EE86285206，万兴兴 二等座05车厢08D号。");
         message.save();
-        message1.save();*/
+        message1.save();
 
-       /* for (int i = 0; i < 5; i++) {
-            com.wan.ticketmessage.Bean.Message message = new com.wan.ticketmessage.Bean.Message("D2354" + i, "玉林" + i, "桂林", "2018/5/6 21:45", "21:52", "5车", "4D号");
-            messages.add(message);
+        for (int i = 0; i < 5; i++) {
+            com.wan.ticketmessage.Bean.Message messagetemp = new com.wan.ticketmessage.Bean.Message("D2354" + i, "玉林" + i, "桂林", "2018/5/6 21:45", "21:52", "5车", "4D号");
+            messages.add(messagetemp);
         }*/
     }
+
     //更新日期，判断是否过期
     private void updateDate() {
         messages = LitePal.findAll(Message.class);
-        Log.d("---数据库删除是否成功---", "updateDate: "+messages.size());
+        Log.d("---数据库删除是否成功---", "updateDate: " + messages.size());
         for (int i = 0; i < messages.size(); i++) {
 
             messages.get(i).setOutDate();
@@ -142,9 +143,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                             @Override
                             public void onSelect(int position, String text) {
                                 messages.remove(bean);
-
                                 adapter.notifyItemRemoved(myposition);//移出item
-                                showSnackBar(bean,myposition);//展示SnackBar,允许撤销操作
+                                showSnackBar(bean, myposition);//展示SnackBar,允许撤销操作
                             }
                         })
                         .atView(v.findViewById(R.id.seatNumber))  // 如果是要依附某个View，必须设置
@@ -155,11 +155,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         };
         mRv.setItemAnimator(new SlideInLeftAnimator());
         mRv.getItemAnimator().setRemoveDuration(600);
-        mRv.setAdapter(MainActivity.this, adapter,1, RecyclerView.VERTICAL);
+        mRv.setAdapter(MainActivity.this, adapter, 1, RecyclerView.VERTICAL);
     }
 
     /**
-     * 刷新数据
+     * 下拉刷新数据
      */
     private void refreshData() {
         new Thread(new Runnable() {
@@ -185,13 +185,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 }
                 int newSize = LitePal.findAll(Message.class).size();
                 if (newSize > oldSize) {
-                   runOnUiThread(new Runnable() {
-                       @Override
-                       public void run() {
-                           Toast.makeText(MainActivity.this, "已添加", Toast.LENGTH_SHORT).show();
-                           refreshLayout.setRefreshing(false);
-                       }
-                   });
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "已添加", Toast.LENGTH_SHORT).show();
+                            refreshLayout.setRefreshing(false);
+                        }
+                    });
                 } else {
                     runOnUiThread(new Runnable() {
                         @Override
@@ -219,46 +219,23 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.item_delete:
-//                showSnackBar();
-
-                break;
-            case R.id.item_description:
-                new AlertDialog.Builder(this).setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                }).setTitle("使用说明").setMessage("复制智行官方发来的购票成功短信，点击添加按钮，粘贴，即可\n增加下拉刷新功能，读取全部短信，提取智行购票成功短信").show();
-
-
-
+                getDeleteALLData();
                 break;
             case R.id.item_about:
-                 new AlertDialog.Builder(this).setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                }).setTitle("关于").setMessage("一款提取火车票短信的APP，仿一加的卡券做出来的产物，半吊子的MD设计，凑合的看看吧\n" +
-                        "\n" +
-                        "\n" +
-                        "复制短信内容，即可添加一张火车票").show();
+                startActivity(Main2Activity.class);
+            default:
                 break;
-                default:break;
         }
         return true;
     }
 
     private void showSnackBar(final Message message, final int position) {
-        Snackbar.make(refreshLayout,"已成功删除数据",Snackbar.LENGTH_SHORT).addCallback(new Snackbar.Callback(){
+        Snackbar.make(refreshLayout, "已成功删除数据", Snackbar.LENGTH_SHORT).addCallback(new Snackbar.Callback() {
             @Override
             public void onDismissed(Snackbar transientBottomBar, int event) {
-                if (event == DISMISS_EVENT_SWIPE || event == DISMISS_EVENT_TIMEOUT || event ==DISMISS_EVENT_CONSECUTIVE) {
-//                    LitePal.delete(Message.class, position);//
+                if (event == DISMISS_EVENT_SWIPE || event == DISMISS_EVENT_TIMEOUT || event == DISMISS_EVENT_CONSECUTIVE) {
+                    //通过对象的delete删除，litepal使用指定id删除的话，会出现找不到id，可能是因为Bean中未定义id属性
                     message.delete();
-                    LitePal.delete(Message.class,1);
-                    Log.d("----位置---", "onDismissed: position"+position);
-                    Log.d("---删除数据---", "onDismissed: size="+LitePal.findAll(Message.class).size());
                 }
             }
         }).setAction("撤销删除", new View.OnClickListener() {
@@ -270,28 +247,67 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }).show();
     }
 
+
     /**
-     * 删除全部过期车票信息
-     * @return
+     * 获得全部过期车票信息
      */
-    private List<Message> deleteALLData() {
-        List<Message> temp = new ArrayList<>();
-        List<Message> mlist = LitePal.findAll(Message.class);
-        for (int i = 0; i <mlist.size() ; i++) {
-            Message message = mlist.get(i);
-            //过期删除
-            if (message.isOutDate()) {
-                temp.add(message);
-                LitePal.delete(Message.class,i);
+    private void getDeleteALLData() {
+
+        while (true) {
+            if (findData()) {
+                deleteData();
+            } else {
+                break;
             }
         }
-        return temp;
+        showToast("已删除过期车票！");
     }
+
+    private boolean findData() {
+        for (Message message : messages) {
+            if (message.isOutDate()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * 删除一条过期数据
+     */
+    private void deleteData() {
+        for (int i = 0; i < messages.size(); i++) {
+            Message message = messages.get(i);
+            if (message.isOutDate()) {
+                message.delete();//数据库删除
+                adapter.notifyItemRemoved(i);
+                messages.remove(message);
+                break;
+            }
+        }
+    }
+
+    /**
+     * 找出该message在List中的位置，实现删除效果
+     *
+     * @param message
+     * @return
+     */
+    private int findPosition(Message message) {
+        for (int i = 0; i < messages.size(); i++) {
+            if (messages.get(i).equals(message)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.floatbutton:
-                final View view = getLayoutInflater().inflate(R.layout.layout_dialog,null);
+                final View view = getLayoutInflater().inflate(R.layout.layout_dialog, null);
                 new AlertDialog.Builder(this).setView(view).setNegativeButton("取消", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -306,22 +322,28 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 }).setTitle("输入内容").show();
 
                 break;
-                default:break;
+            default:
+                break;
         }
     }
 
+    /**
+     * 添加数据
+     *
+     * @param textInputEditText String信息
+     */
     private void getInputData(TextInputEditText textInputEditText) {
         String data = textInputEditText.getText().toString();
         if (!TextUtils.isEmpty(data)) {
             if (data.startsWith("【智行】")) {
                 Message message = MessageExtract.getMessage(data);
                 message.save();
-                adapter.setList_bean(LitePal.findAll(Message.class));
+                adapter.add(message);//适配器绑定的数据源添加一条数据
                 showToast("添加成功！");
             } else {
                 showToast("内容错误!");
             }
-        }else {
+        } else {
             showToast("内容不能为空!!");
         }
 
@@ -329,6 +351,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     /**
      * 提取全部短信内容
+     *
      * @param list
      */
     private void extraData(List<String> list) {
@@ -338,7 +361,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             String data = list.get(i);
             if (!TextUtils.isEmpty(data)) {
                 if (data.startsWith("【智行】")) {
-                    Message message = MessageExtract.getMessage(data);
+                    final Message message = MessageExtract.getMessage(data);
                     //不相同才存进数据库
                     if (!isSame(message)) {
                         Log.d("---提取短信---", "extraData: 存入数据");
@@ -346,7 +369,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                adapter.setList_bean(LitePal.findAll(Message.class));
+                                adapter.notifyItemInserted(adapter.getItemCount());//末尾插入
                             }
                         });
                     }
@@ -357,11 +380,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     /**
      * 判断是否相同
+     *
      * @param message 信息
      * @return 是否相同
      */
     private boolean isSame(Message message) {
-        boolean flag =false;
+        boolean flag = false;
         List<Message> list = LitePal.findAll(Message.class);
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i).equals(message)) {
@@ -375,14 +399,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     /**
      * 获取全部短信内容
+     *
      * @return
      */
     private List<String> getSMSBody() {
         List<String> bodyList = new ArrayList<>();
         if (PermissionUtils.checkPermission(this, Manifest.permission.READ_SMS)) {
             Uri uri = Uri.parse(SMS_URI_ALL);
-            String[] projection = new String[] { "_id", "address", "person",
-                    "body", "date", "type", };
+            String[] projection = new String[]{"_id", "address", "person",
+                    "body", "date", "type",};
             Cursor cur = getContentResolver().query(uri, projection, null,
                     null, "date desc");
             int index_Body = cur.getColumnIndex("body");
@@ -391,7 +416,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 do {
                     String strbody = cur.getString(index_Body);
                     bodyList.add(strbody);
-                }while (cur.moveToNext());
+                } while (cur.moveToNext());
             }
 
             return bodyList;

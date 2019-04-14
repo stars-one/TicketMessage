@@ -9,8 +9,5 @@
         android:id="@+id/item_about"
         app:showAsAction="never"
         android:title="关于"/>
-    <item
-        android:id="@+id/item_description"
-        app:showAsAction="never"
-        android:title="使用说明"/>
+
 </menu>
